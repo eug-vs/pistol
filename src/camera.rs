@@ -1,16 +1,16 @@
 use crate::vector::Vector;
 use std::{cmp::{max, min}, f32::consts::PI, f64::MAX_EXP, fmt};
 
-const WIDTH: i32 = 60;
-const HEIGHT: i32 = 30;
+const WIDTH: i32 = 100;
+const HEIGHT: i32 = 50;
 
 #[derive(Debug)]
-pub struct Buffer (pub [[char; 60]; 30]);
+pub struct Buffer (pub [[char; 100]; 50]);
 
 impl fmt::Display for Buffer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for i in 0..30 {
-            for j in 0..60 {
+        for i in 0..50 {
+            for j in 0..100 {
                 write!(f, "{}", self.0[i][j])?;
             }
             writeln!(f)?;
@@ -32,10 +32,15 @@ pub struct Camera {
 
 impl Camera {
     pub fn sdf(&self, point: Vector) -> f32 {
+        // Sphere
         let center = Vector { x: 3.0, y: 0.0, z: 0.0 };
         let radius = 1.0;
 
-        return (point - center).magnitude() - radius
+        let sphere_dist = (point - center).magnitude() - radius;
+
+        let floor_dist = point.z + 1.0; // Floor at z = -1
+
+        sphere_dist.min(floor_dist)
     }
 
     pub fn screen(&self) -> (f32, f32) {
@@ -45,7 +50,7 @@ impl Camera {
         (width, height)
     }
     pub fn render(& mut self) {
-        let palette = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
+        let palette = "$@B%8&WM#oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'.";
         let (screen_width, screen_height) = self.screen();
 
         let h_step = self.direction.rotate_z(PI / 2.0).normalized() * screen_width / WIDTH as f32;
@@ -78,8 +83,10 @@ impl Camera {
         let ray = direction.normalized();
         let mut point = self.position;
         let mut dist = 0.0;
+        let mut count = 0;
 
-        while dist < self.brightness {
+        while dist < self.brightness && count < 25 {
+            count += 1;
             dist = self.sdf(point);
             if dist < threshold {
                 // println!("Dist: {}, point {}", dist, point);

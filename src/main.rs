@@ -17,7 +17,7 @@ fn main() {
         distance: 1.0,
         aspect_ratio: 1.0,
         brightness: 10.0,
-        buffer: Buffer([['.'; 60]; 30])
+        buffer: Buffer([['.'; 100]; 50])
     };
 
     for _i in 0..60 {
