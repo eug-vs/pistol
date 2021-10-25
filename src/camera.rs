@@ -1,16 +1,16 @@
 use crate::vector::Vector;
 use std::{cmp::{max, min}, f32::consts::PI, f64::MAX_EXP, fmt};
 
-const WIDTH: i32 = 100;
-const HEIGHT: i32 = 50;
+const WIDTH: i32 = 120;
+const HEIGHT: i32 = 60;
 
 #[derive(Debug)]
-pub struct Buffer (pub [[char; 100]; 50]);
+pub struct Buffer (pub [[char; 120]; 60]);
 
 impl fmt::Display for Buffer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for i in 0..50 {
-            for j in 0..100 {
+        for i in 0..60 {
+            for j in 0..120 {
                 write!(f, "{}", self.0[i][j])?;
             }
             writeln!(f)?;
@@ -30,6 +30,11 @@ pub struct Camera {
     pub buffer: Buffer,
 }
 
+fn softmin(left: f32, right: f32, k: f32) -> f32 {
+    let h = (k-(left-right).abs()).max(0.0) / k;
+    return left.min(right) - h*h*k*(1.0/4.0);
+}
+
 impl Camera {
     pub fn sdf(&self, point: Vector) -> f32 {
          // Floor at z = -2
@@ -40,13 +45,25 @@ impl Camera {
         let radius = 1.0;
         let sphere_dist = (point - center).magnitude() - radius;
 
-
         // Small sphere
         let center2 = Vector { x: 2.5, y: 0.5, z: 0.0 };
         let radius2 = 0.7;
         let sphere2_dist = (point - center2).magnitude() - radius2;
 
-        sphere_dist.max(-sphere2_dist).min(floor_dist)
+        // Second sphere
+        let center3 = Vector { x: 3.0, y: -2.5, z: 0.0 };
+        let radius3 = 1.0;
+        let sphere3_dist = (point - center3).magnitude() - radius3;
+
+        softmin(
+            softmin(
+                sphere_dist.max(-sphere2_dist),
+                sphere3_dist,
+                1.5
+            ),
+            floor_dist,
+            0.8
+        )
     }
 
     pub fn screen(&self) -> (f32, f32) {

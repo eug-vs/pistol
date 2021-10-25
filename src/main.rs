@@ -11,13 +11,13 @@ trait Object {
 
 fn main() {
     let mut cam = Camera {
-        position: Vector { x: 0.0, y: 0.0, z: 0.0 },
+        position: Vector { x: 0.0, y: -0.7, z: 0.0 },
         direction: Vector { x: 1.0, y: 0.0, z: 0.0 },
         angle: PI / 2.0,
         distance: 1.0,
         aspect_ratio: 1.0,
         brightness: 10.0,
-        buffer: Buffer([['.'; 100]; 50])
+        buffer: Buffer([['.'; 120]; 60])
     };
 
     cam.render();
