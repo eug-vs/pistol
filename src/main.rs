@@ -20,8 +20,6 @@ fn main() {
         buffer: Buffer([['.'; 100]; 50])
     };
 
-    for _i in 0..60 {
-        cam.render();
-        println!("{}", cam.buffer);
-    }
+    cam.render();
+    println!("{}", cam.buffer);
 }

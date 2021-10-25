@@ -32,15 +32,21 @@ pub struct Camera {
 
 impl Camera {
     pub fn sdf(&self, point: Vector) -> f32 {
+         // Floor at z = -2
+        let floor_dist = point.z + 1.0;
+
         // Sphere
         let center = Vector { x: 3.0, y: 0.0, z: 0.0 };
         let radius = 1.0;
-
         let sphere_dist = (point - center).magnitude() - radius;
 
-        let floor_dist = point.z + 1.0; // Floor at z = -1
 
-        sphere_dist.min(floor_dist)
+        // Small sphere
+        let center2 = Vector { x: 2.5, y: 0.5, z: 0.0 };
+        let radius2 = 0.7;
+        let sphere2_dist = (point - center2).magnitude() - radius2;
+
+        sphere_dist.max(-sphere2_dist).min(floor_dist)
     }
 
     pub fn screen(&self) -> (f32, f32) {
@@ -77,7 +83,23 @@ impl Camera {
         }
     }
 
+    pub fn normal(&self, point: Vector) -> Vector {
+        let d = 0.01;
+
+        let dx = Vector { x: d, y: 0.0, z: 0.0 };
+        let dfdx = (self.sdf(point + dx) - self.sdf(point - dx)) / (2.0 * d);
+
+        let dy = Vector { x: 0.0, y: d, z: 0.0 };
+        let dfdy = (self.sdf(point + dy) - self.sdf(point - dy)) / (2.0 * d);
+
+        let dz = Vector { x: 0.0, y: 0.0, z: d };
+        let dfdz = (self.sdf(point + dz) - self.sdf(point - dz)) / (2.0 * d);
+
+        Vector { x: dfdx, y: dfdy, z: dfdz }.normalized()
+    }
+
     pub fn shoot_ray(&self, direction: Vector) -> f32 {
+        let light = Vector { x: 1.0, y: 1.0, z: -1.0 }.normalized();
         let threshold = 0.1;
 
         let ray = direction.normalized();
@@ -85,12 +107,14 @@ impl Camera {
         let mut dist = 0.0;
         let mut count = 0;
 
-        while dist < self.brightness && count < 25 {
+        while dist < self.brightness && count < 30 {
             count += 1;
             dist = self.sdf(point);
             if dist < threshold {
-                // println!("Dist: {}, point {}", dist, point);
-                return (point - self.position).magnitude() / self.brightness
+                // Collision in point! Let's calculate lights now:
+                let normal = self.normal(point);
+                let dot = -(normal * light);
+                return 1.0 - dot.max(0.01).min(0.98);
             }
             point = point + ray * dist;
         }

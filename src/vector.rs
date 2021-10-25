@@ -58,6 +58,13 @@ impl ops::Div<f32> for Vector {
     }
 }
 
+impl ops::Mul<Vector> for Vector {
+    type Output = f32;
+    fn mul(self, rhs: Vector) -> Self::Output {
+        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
+    }
+}
+
 impl Vector {
     pub fn magnitude_squared(self) -> f32 {
         self.x * self.x + self.y * self.y + self.z * self.z
