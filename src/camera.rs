@@ -91,21 +91,14 @@ impl Camera {
         return dist
     }
 
-    pub fn rorate_around_point(& mut self, point: Vector) {
-        let rotations_per_round = 2.0;
-        self.position = rotate_z(self.position - point, rotations_per_round * 2.0 * PI / 60.0) + point;
-        self.direction = (point - self.position).normalize();
-    }
-
     pub fn screen(&self) -> (f32, f32) {
         let width = self.distance * 2.0 * (self.angle / 2.0).tan();
         let height = width * self.aspect_ratio;
         // println!("Screen {}x{} units", width, height);
         (width, height)
     }
-    pub fn render(& mut self) {
-        self.rorate_around_point(Vector { x: 4.0, y: 0.0, z: 0.0 });
 
+    pub fn render(& mut self) {
         let palette = "$@B%8&WM#oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
         let (screen_width, screen_height) = self.screen();
 
