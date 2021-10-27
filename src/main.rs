@@ -12,6 +12,7 @@ fn main() {
     let mut cam = Camera {
         position: Vector3 { x: 0.0, y: -0.7, z: 0.0 },
         direction: Vector3 { x: 1.0, y: 0.0, z: 0.0 }.normalize(),
+        up: Vector3::unit_z(),
         light: Vector3 { x: 1.0, y: 1.0, z: -1.0 }.normalize(),
         angle: PI / 2.0,
         distance: 1.0,
@@ -19,6 +20,8 @@ fn main() {
         brightness: 5.0,
         buffer: Buffer([[' '; WIDTH as usize]; HEIGHT as usize]),
         time: 0.0,
+        speed: 0.5,
+        turn_rate: 30.0,
     };
 
     initscr();
@@ -36,7 +39,7 @@ fn main() {
         addstr(&cam.buffer.to_string());
         addstr(&format!("\nRendered in {:?} ({:.0} FPS)\n", timestamp.elapsed(), 1.0 / timestamp.elapsed().as_secs_f64()));
         addstr(&format!("Camera: {:?}\n", cam.position));
-        addstr(&format!("Facing: {:?}\n", cam.direction));
+        addstr(&format!("Facing: {:?}, Up: {:?}\n", cam.direction, cam.up));
         addstr(&format!("Light: {:?}\n", cam.light));
         refresh();
 
@@ -45,27 +48,44 @@ fn main() {
         addstr(&format!("\nPressed: {:?}\n", char));
         refresh();
 
-        let cam_speed = 0.5;
-        let cam_turn_rate = 30.0;
-
-        if char == 106 || char == 74 {
-            cam.position -= cam.direction * cam_speed;
-        } else if char == 107 || char == 75 {
-            cam.position += cam.direction * cam_speed;
-        } else if char == 104 {
-            cam.direction = Matrix3::from_angle_z(-Rad::full_turn() / cam_turn_rate) * cam.direction;
-        } else if char == 108 {
-            cam.direction = Matrix3::from_angle_z(Rad::full_turn() / cam_turn_rate) * cam.direction;
-        } else if char == 72 {
-            cam.position -= Matrix3::from_angle_z(Rad::turn_div_4()) * cam.direction * cam_speed;
-        } else if char == 76 {
-            cam.position += Matrix3::from_angle_z(Rad::turn_div_4()) * cam.direction * cam_speed;
+        if char == 107 { // k to move forward
+            cam.position += cam.direction * cam.speed;
+        } else if char == 106 { // j to move backward
+            cam.position -= cam.direction * cam.speed;
+        } else if char == 72 { // H to move left
+            cam.position -= Matrix3::from_axis_angle(cam.up, Rad::turn_div_4()) * cam.direction * cam.speed;
+        } else if char == 76 { // L to move right
+            cam.position += Matrix3::from_axis_angle(cam.up, Rad::turn_div_4()) * cam.direction * cam.speed;
+        } else if char == 104 { // h to rotate left
+            let rotation = Matrix3::from_angle_z(-Rad::full_turn() / cam.turn_rate);
+            cam.direction = rotation * cam.direction;
+            cam.up = rotation * cam.up;
+        } else if char == 108 { // l to rotate right
+            let rotation = Matrix3::from_angle_z(Rad::full_turn() / cam.turn_rate);
+            cam.direction = rotation * cam.direction;
+            cam.up = rotation * cam.up;
+        } else if char == 75 { // K to rotate up
+            let axis = cam.up.cross(cam.direction);
+            let angle = -Rad::full_turn() / cam.turn_rate;
+            let rotation = Matrix3::from_axis_angle(axis, angle);
+            cam.up = rotation * cam.up;
+            cam.direction = rotation * cam.direction;
+        } else if char == 74 { // J to rotate down
+            let axis = cam.up.cross(cam.direction);
+            let angle = Rad::full_turn() / cam.turn_rate;
+            let rotation = Matrix3::from_axis_angle(axis, angle);
+            cam.up = rotation * cam.up;
+            cam.direction = rotation * cam.direction;
+        } else if char == 117 { // u to move up along Z
+            cam.position += Vector3::unit_z() * cam.speed;
+        } else if char == 100 { // d to move down along Z
+            cam.position -= Vector3::unit_z() * cam.speed;
         } else if char == 70 { // F to reverse camera direction
             cam.direction = -cam.direction;
         } else if char == 101 { // e to change lights
-            cam.light = Matrix3::from_angle_z(Rad::turn_div_2() / cam_turn_rate) * cam.light;
+            cam.light = Matrix3::from_angle_z(Rad::turn_div_2() / cam.turn_rate) * cam.light;
         } else if char == 69 { // E to change lights vertically
-            cam.light = Matrix3::from_angle_y(Rad::turn_div_2() / cam_turn_rate) * cam.light;
+            cam.light = Matrix3::from_angle_y(Rad::turn_div_2() / cam.turn_rate) * cam.light;
         }
     }
 
