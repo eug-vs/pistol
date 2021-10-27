@@ -32,6 +32,7 @@ impl fmt::Display for Buffer {
 
 #[derive(Debug)]
 pub struct Camera {
+    pub time: f32,
     pub position: Vector,
     pub direction: Vector,
     pub angle: f32,
@@ -42,6 +43,7 @@ pub struct Camera {
 }
 
 fn softmin(left: f32, right: f32, k: f32) -> f32 {
+    // return left.min(right);
     let h = (k-(left-right).abs()).max(0.0) / k;
     return left.min(right) - h*h*k*(1.0/4.0);
 }
@@ -53,7 +55,7 @@ impl Camera {
 
         // Sphere
         let center = Vector { x: 3.0, y: 0.0, z: 0.0 };
-        let radius = 1.0;
+        let radius = 1.0 + 0.5 * self.time.sin();
         let sphere_dist = (point - center).magnitude() - radius;
 
         // Small sphere
@@ -62,7 +64,7 @@ impl Camera {
         let sphere2_dist = (point - center2).magnitude() - radius2;
 
         // Second sphere
-        let center3 = Vector { x: 3.0, y: -2.5, z: 0.0 };
+        let center3 = Vector { x: 3.0 + self.time.sin() * 1.6, y: -2.5, z: 0.0 - self.time.sin() * 0.8 };
         let radius3 = 1.0;
         let sphere3_dist = (point - center3).magnitude() - radius3;
 
