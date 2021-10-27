@@ -5,7 +5,7 @@ use std::fmt;
 
 type Vector = Vector3<f32>;
 
-pub const HEIGHT: i32 = 40;
+pub const HEIGHT: i32 = 30;
 pub const WIDTH: i32 = HEIGHT * 3;
 
 #[derive(Debug)]
@@ -96,7 +96,7 @@ impl Camera {
     }
 
     pub fn render(& mut self) {
-        let palette = "$@B%8&WM#oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
+        let palette = "$@B%8&WM#oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ".to_string();
         let (screen_width, screen_height) = self.screen();
 
         let cross = self.up.cross(self.direction);
@@ -117,62 +117,80 @@ impl Camera {
                 // Apply transform to unit square centered at (1, 0, 0)
                 let ray_dir = operator * Vector { x: 1.0, y: 0.5 - jx, z: 0.5 - ix };
 
-                let brightness = self.shoot_ray(ray_dir);
-                self.buffer.0[i][j] = palette.chars().nth((brightness * palette.len() as f32) as usize - 1).unwrap();
+                let collision = self.ray_marching(self.position, ray_dir);
+
+                let brightness = match collision {
+                    Some(point) => self.light_point(point),
+                    None => 0.0
+                };
+
+                self.buffer.0[i][j] = palette
+                    .chars()
+                    .nth(((1.0 - brightness) * (palette.len() - 1) as f32) as usize)
+                    .unwrap();
             }
         }
     }
 
     pub fn normal(&self, point: Vector) -> Vector {
-        let d = 0.01;
+        let d = 0.001;
 
-        let dx = Vector { x: d, y: 0.0, z: 0.0 };
-        let dfdx = (self.sdf(point + dx) - self.sdf(point - dx)) / (2.0 * d);
+        let dx = Vector::unit_x() * d;
+        let dy = Vector::unit_y() * d;
+        let dz = Vector::unit_z() * d;
 
-        let dy = Vector { x: 0.0, y: d, z: 0.0 };
-        let dfdy = (self.sdf(point + dy) - self.sdf(point - dy)) / (2.0 * d);
-
-        let dz = Vector { x: 0.0, y: 0.0, z: d };
-        let dfdz = (self.sdf(point + dz) - self.sdf(point - dz)) / (2.0 * d);
-
-        Vector { x: dfdx, y: dfdy, z: dfdz }.normalize()
+        return (Vector {
+            x: (self.sdf(point + dx) - self.sdf(point - dx)),
+            y: (self.sdf(point + dy) - self.sdf(point - dy)),
+            z: (self.sdf(point + dz) - self.sdf(point - dz)),
+        } / (2.0 * d)).normalize()
     }
 
-    pub fn shoot_ray(&self, direction: Vector) -> f32 {
+    pub fn ray_marching(&self, origin: Vector, direction: Vector) -> Option<Vector> {
         let threshold = 0.1;
 
         let ray = direction.normalize();
-        let mut point = self.position;
+        let mut point = origin;
         let mut dist = 0.0;
         let mut count = 0;
 
-        while dist < self.brightness && count < 50 {
+        while dist < 10.0 && count < 30 {
             count += 1;
             dist = self.sdf(point);
             if dist < threshold {
-                // Collision in point! Let's calculate lights now:
-                let mut res: f32 = 1.0;
-                let mut t = 0.001;
-                let k = 2.0;
-
-                while t < 7.0 {
-                    let h = self.sdf(point - self.light * t);
-                    if h < 0.001 {
-                        return 0.97
-                    }
-                    res = res.min(k * h / t);
-                    t += h;
-
-                }
-
-                let normal = self.normal(point);
-                let dot = -(normal.dot(self.light));
-
-                return 1.0 - 0.5 * dot.max(0.01).min(0.98) - 0.5 * res.min(0.98)
+                return Some(point);
             }
-            point = point + ray * dist;
+            point += ray * dist;
         }
 
-        return 1.0
+        return None
+    }
+
+    pub fn light_point(&self, point: Vector) -> f32 {
+        let base_light = 0.1;
+        return base_light + (1.0 - base_light) * (self.apply_shadow(point) * 0.7 + self.apply_ambient(point) * 0.3)
+    }
+
+    pub fn apply_shadow(&self, point: Vector) -> f32 {
+        let mut res: f32 = 1.0;
+        let mut t = 0.001;
+        let k = 4.0;
+
+        while t < 7.0 {
+            let h = self.sdf(point - self.light * t);
+            if h < 0.001 {
+                return 0.00
+            }
+            res = res.min(k * h / t);
+            t += h;
+        }
+
+        return res
+    }
+
+    pub fn apply_ambient(&self, point: Vector) -> f32 {
+        let normal = self.normal(point);
+        let dot = -(normal.dot(self.light));
+        return dot.min(1.0).max(0.0)
     }
 }
