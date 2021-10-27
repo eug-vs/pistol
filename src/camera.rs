@@ -48,35 +48,47 @@ fn softmin(left: f32, right: f32, k: f32) -> f32 {
     return left.min(right) - h*h*k*(1.0/4.0);
 }
 
+fn sphere(point: Vector, center: Vector, radius: f32) -> f32 {
+    (point - center).magnitude() - radius
+}
+
+fn r#box(point: Vector, center: Vector, size: Vector) -> f32 {
+    let diff = center - point;
+    let q = diff.map(|n| n.abs()) - size / 2.0;
+    return q.map(|n| n.max(0.0)).magnitude() + (q.y.max(q.z).max(q.x)).min(0.0)
+}
+
+
 impl Camera {
     pub fn sdf(&self, point: Vector) -> f32 {
+        let mut dist: f32;
          // Floor at z = -2
         let floor_dist = point.z + 1.0;
 
+        dist = floor_dist;
+
         // Sphere
-        let center = Vector { x: 4.0, y: 0.0, z: 0.0 };
-        let radius = 1.0 + 0.5 * self.time.sin();
-        let sphere_dist = (point - center).magnitude() - radius;
+        {
+            let center = Vector { x: 4.0, y: 0.0, z: 0.0 };
+            let radius = 1.5;
+            dist = softmin(dist, sphere(point, center, radius), 1.2);
+        }
 
-        // Small sphere
-        let center2 = Vector { x: 3.5, y: 0.5, z: 0.0 };
-        let radius2 = 0.7;
-        let sphere2_dist = (point - center2).magnitude() - radius2;
+        // Hole
+        {
+            let center = Vector { x: 4.0, y: 0.0, z: 0.0 };
+            let size = Vector::new(5.0, 2.0, 2.0);
+            dist = dist.max(-r#box(point, center, size));
+        }
 
-        // Second sphere
-        let center3 = Vector { x: 4.0 + self.time.sin() * 1.6, y: -2.5, z: 0.0 - self.time.sin() * 0.8 };
-        let radius3 = 1.0;
-        let sphere3_dist = (point - center3).magnitude() - radius3;
+        // Windows
+        {
+            let center = Vector { x: 4.0, y: 0.0, z: 0.0 };
+            let size = Vector::new(1.0, 5.0, 1.0);
+            dist = dist.max(-(r#box(point, center, size)));
+        }
 
-        softmin(
-            softmin(
-                sphere_dist.max(-sphere2_dist),
-                sphere3_dist,
-                1.5
-            ),
-            floor_dist,
-            0.8
-        )
+        return dist
     }
 
     pub fn rorate_around_point(& mut self, point: Vector) {
