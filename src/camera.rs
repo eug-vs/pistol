@@ -167,13 +167,14 @@ impl Camera {
     }
 
     pub fn light_point(&self, point: Vector) -> f32 {
-        let base_light = 0.1;
+        let base_light = 0.01;
         return base_light + (1.0 - base_light) * (self.apply_shadow(point) * 0.7 + self.apply_ambient(point) * 0.3)
     }
 
     pub fn apply_shadow(&self, point: Vector) -> f32 {
         let mut res: f32 = 1.0;
-        let mut t = 0.001;
+        let mut ph = 1e20;
+        let mut t = 0.1;
         let k = 4.0;
 
         while t < 7.0 {
@@ -181,8 +182,11 @@ impl Camera {
             if h < 0.001 {
                 return 0.00
             }
-            res = res.min(k * h / t);
+            let y = h * h / (2.0 * ph);
+            let d = (h * h - y * y).sqrt();
+            res = res.min(k * d / (t - y).max(0.0));
             t += h;
+            ph = h;
         }
 
         return res
