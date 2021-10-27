@@ -1,3 +1,4 @@
+use cgmath::Matrix3;
 use cgmath::Vector3;
 use cgmath::prelude::*;
 use std::fmt;
@@ -98,27 +99,27 @@ impl Camera {
         let palette = "$@B%8&WM#oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
         let (screen_width, screen_height) = self.screen();
 
-        let h_step = self.up.cross(self.direction) * screen_width / WIDTH as f32;
-        let v_step = -self.up * screen_height / HEIGHT as f32;
-        // println!("Steps: h{}, v{}", h_step, v_step);
+        let cross = self.up.cross(self.direction);
 
-        // Initialize with a corner
-        let point = self.position + (self.direction.normalize() * self.distance) - (h_step * (WIDTH / 2) as f32 + v_step * (HEIGHT / 2) as f32);
-        // println!("Corner: {}", point);
-
-        let mut ray_dir = point - self.position;
+        // Linear transormation operator for calculating screen position
+        // Assumes "initial" screen is perpendicular to OX
+        // and it's bottom edge is parallel to OY
+        let operator = Matrix3::from_cols(
+            self.direction * self.distance,
+            cross * screen_width,
+            self.up * screen_height,
+        );
 
         for i in 0..HEIGHT as usize {
-            ray_dir = ray_dir + v_step;
+            let ix = i as f32 / HEIGHT as f32;
             for j in 0..WIDTH as usize {
-                ray_dir = ray_dir + h_step;
-
+                let jx = j as f32 / WIDTH as f32;
+                // Apply transform to unit square centered at (1, 0, 0)
+                let ray_dir = operator * Vector { x: 1.0, y: 0.5 - jx, z: 0.5 - ix };
 
                 let brightness = self.shoot_ray(ray_dir);
                 self.buffer.0[i][j] = palette.chars().nth((brightness * palette.len() as f32) as usize - 1).unwrap();
-                // println!("[{}, {}]: {}", i, j, ray_dir);
             }
-            ray_dir = ray_dir - h_step * WIDTH as f32;
         }
     }
 

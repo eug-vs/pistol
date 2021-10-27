@@ -3,15 +3,15 @@ extern crate ncurses;
 mod camera;
 mod canvas;
 use std::{f32::consts::PI, time::Instant};
-use cgmath::{Angle, InnerSpace, Matrix3, Rad, Vector3};
+use cgmath::{Angle, InnerSpace, Matrix3, Rad, Vector3, Zero};
 use ncurses::*;
 
 use crate::camera::{Buffer, Camera, WIDTH, HEIGHT};
 
 fn main() {
     let mut cam = Camera {
-        position: Vector3 { x: 0.0, y: -0.7, z: 0.0 },
-        direction: Vector3 { x: 1.0, y: 0.0, z: 0.0 }.normalize(),
+        position: Vector3::zero(),
+        direction: Vector3::unit_x(),
         up: Vector3::unit_z(),
         light: Vector3 { x: 1.0, y: 1.0, z: -1.0 }.normalize(),
         angle: PI / 2.0,
@@ -53,15 +53,15 @@ fn main() {
         } else if char == 106 { // j to move backward
             cam.position -= cam.direction * cam.speed;
         } else if char == 72 { // H to move left
-            cam.position -= Matrix3::from_axis_angle(cam.up, Rad::turn_div_4()) * cam.direction * cam.speed;
-        } else if char == 76 { // L to move right
             cam.position += Matrix3::from_axis_angle(cam.up, Rad::turn_div_4()) * cam.direction * cam.speed;
+        } else if char == 76 { // L to move right
+            cam.position -= Matrix3::from_axis_angle(cam.up, Rad::turn_div_4()) * cam.direction * cam.speed;
         } else if char == 104 { // h to rotate left
-            let rotation = Matrix3::from_angle_z(-Rad::full_turn() / cam.turn_rate);
+            let rotation = Matrix3::from_angle_z(Rad::full_turn() / cam.turn_rate);
             cam.direction = rotation * cam.direction;
             cam.up = rotation * cam.up;
         } else if char == 108 { // l to rotate right
-            let rotation = Matrix3::from_angle_z(Rad::full_turn() / cam.turn_rate);
+            let rotation = Matrix3::from_angle_z(-Rad::full_turn() / cam.turn_rate);
             cam.direction = rotation * cam.direction;
             cam.up = rotation * cam.up;
         } else if char == 75 { // K to rotate up
