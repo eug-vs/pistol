@@ -94,7 +94,7 @@ impl Camera {
     pub fn render(& mut self) {
         self.rorate_around_point(Vector { x: 4.0, y: 0.0, z: 0.0 });
 
-        let palette = "$@B%8&WM#oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'.";
+        let palette = "$@B%8&WM#oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
         let (screen_width, screen_height) = self.screen();
 
         let h_step = rotate_z(self.direction, PI / 2.0).normalize() * screen_width / WIDTH as f32;
@@ -145,14 +145,29 @@ impl Camera {
         let mut dist = 0.0;
         let mut count = 0;
 
-        while dist < self.brightness && count < 30 {
+        while dist < self.brightness && count < 50 {
             count += 1;
             dist = self.sdf(point);
             if dist < threshold {
                 // Collision in point! Let's calculate lights now:
+                let mut res: f32 = 1.0;
+                let mut t = 0.001;
+                let k = 2.0;
+
+                while t < 7.0 {
+                    let h = self.sdf(point - light * t);
+                    if h < 0.001 {
+                        return 0.97
+                    }
+                    res = res.min(k * h / t);
+                    t += h;
+
+                }
+
                 let normal = self.normal(point);
                 let dot = -(normal.dot(light));
-                return 1.0 - dot.max(0.01).min(0.98);
+
+                return 1.0 - 0.5 * dot.max(0.01).min(0.98) - 0.5 * res.min(0.98)
             }
             point = point + ray * dist;
         }
