@@ -1,16 +1,10 @@
+use cgmath::Matrix3;
+use cgmath::Rad;
 use cgmath::Vector3;
 use cgmath::prelude::*;
 use std::{cmp::{max, min}, f32::consts::PI, fmt};
 
 type Vector = Vector3<f32>;
-
-pub fn rotate_z(vec: Vector, angle: f32) -> Vector {
-    return Vector {
-        x: vec.x * angle.cos() + vec.y * angle.sin(),
-        y: vec.y * angle.cos() - vec.x * angle.sin(),
-        z: vec.z,
-    }
-}
 
 pub const HEIGHT: i32 = 40;
 pub const WIDTH: i32 = HEIGHT * 3;
@@ -35,6 +29,7 @@ pub struct Camera {
     pub time: f32,
     pub position: Vector,
     pub direction: Vector,
+    pub light: Vector,
     pub angle: f32,
     pub distance: f32,
     pub brightness: f32,
@@ -102,7 +97,7 @@ impl Camera {
         let palette = "$@B%8&WM#oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
         let (screen_width, screen_height) = self.screen();
 
-        let h_step = rotate_z(self.direction, PI / 2.0).normalize() * screen_width / WIDTH as f32;
+        let h_step = Matrix3::from_angle_z(Rad::turn_div_4()) * self.direction * screen_width / WIDTH as f32;
         let v_step = Vector { x: 0.0, y: 0.0, z: -screen_height / HEIGHT as f32 };
         // println!("Steps: h{}, v{}", h_step, v_step);
 
@@ -142,7 +137,6 @@ impl Camera {
     }
 
     pub fn shoot_ray(&self, direction: Vector) -> f32 {
-        let light = Vector { x: 1.0, y: 1.0, z: -1.0 }.normalize();
         let threshold = 0.1;
 
         let ray = direction.normalize();
@@ -160,7 +154,7 @@ impl Camera {
                 let k = 2.0;
 
                 while t < 7.0 {
-                    let h = self.sdf(point - light * t);
+                    let h = self.sdf(point - self.light * t);
                     if h < 0.001 {
                         return 0.97
                     }
@@ -170,7 +164,7 @@ impl Camera {
                 }
 
                 let normal = self.normal(point);
-                let dot = -(normal.dot(light));
+                let dot = -(normal.dot(self.light));
 
                 return 1.0 - 0.5 * dot.max(0.01).min(0.98) - 0.5 * res.min(0.98)
             }
