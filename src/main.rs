@@ -1,7 +1,10 @@
+extern crate ncurses;
+
 mod camera;
 mod canvas;
 use std::f32::consts::PI;
 use cgmath::Vector3;
+use ncurses::*;
 
 use crate::camera::{Buffer, Camera, WIDTH, HEIGHT};
 
@@ -17,11 +20,18 @@ fn main() {
         time: 0.0,
     };
 
+    initscr();
+
     for _round in 0..20 {
         for i in 0..60 {
             cam.time = (i as f32 / 60.0) * 2.0 * PI;
             cam.render();
-            println!("{}", cam.buffer);
+
+            clear();
+            addstr(&cam.buffer.to_string());
+            refresh();
         }
     }
+
+    endwin();
 }
