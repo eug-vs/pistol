@@ -1,6 +1,6 @@
-use cgmath::{Vector3, Matrix};
+use cgmath::Vector3;
 use cgmath::prelude::*;
-use std::{cmp::{max, min}, f32::consts::PI, f64::MAX_EXP, fmt};
+use std::{cmp::{max, min}, f32::consts::PI, fmt};
 
 type Vector = Vector3<f32>;
 
@@ -12,16 +12,16 @@ pub fn rotate_z(vec: Vector, angle: f32) -> Vector {
     }
 }
 
-const WIDTH: i32 = 180;
-const HEIGHT: i32 = 60;
+pub const HEIGHT: i32 = 40;
+pub const WIDTH: i32 = HEIGHT * 3;
 
 #[derive(Debug)]
-pub struct Buffer (pub [[char; 180]; 60]);
+pub struct Buffer (pub [[char; WIDTH as usize]; HEIGHT as usize]);
 
 impl fmt::Display for Buffer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for i in 0..60 {
-            for j in 0..180 {
+        for i in 0..HEIGHT as usize {
+            for j in 0..WIDTH as usize {
                 write!(f, "{}", self.0[i][j])?;
             }
             writeln!(f)?;

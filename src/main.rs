@@ -3,7 +3,7 @@ mod canvas;
 use std::f32::consts::PI;
 use cgmath::Vector3;
 
-use crate::camera::{Buffer, Camera};
+use crate::camera::{Buffer, Camera, WIDTH, HEIGHT};
 
 fn main() {
     let mut cam = Camera {
@@ -11,9 +11,9 @@ fn main() {
         direction: Vector3 { x: 1.0, y: 0.0, z: 0.0 },
         angle: PI / 2.0,
         distance: 1.0,
-        aspect_ratio: 2.0 / 3.0,
+        aspect_ratio: 2.0 * HEIGHT as f32 / WIDTH as f32,
         brightness: 5.0,
-        buffer: Buffer([['.'; 180]; 60]),
+        buffer: Buffer([[' '; WIDTH as usize]; HEIGHT as usize]),
         time: 0.0,
     };
 
