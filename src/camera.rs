@@ -1,5 +1,16 @@
-use crate::vector::Vector;
+use cgmath::{Vector3, Matrix};
+use cgmath::prelude::*;
 use std::{cmp::{max, min}, f32::consts::PI, f64::MAX_EXP, fmt};
+
+type Vector = Vector3<f32>;
+
+pub fn rotate_z(vec: Vector, angle: f32) -> Vector {
+    return Vector {
+        x: vec.x * angle.cos() + vec.y * angle.sin(),
+        y: vec.y * angle.cos() - vec.x * angle.sin(),
+        z: vec.z,
+    }
+}
 
 const WIDTH: i32 = 120;
 const HEIGHT: i32 = 60;
@@ -76,12 +87,12 @@ impl Camera {
         let palette = "$@B%8&WM#oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'.";
         let (screen_width, screen_height) = self.screen();
 
-        let h_step = self.direction.rotate_z(PI / 2.0).normalized() * screen_width / WIDTH as f32;
+        let h_step = rotate_z(self.direction, PI / 2.0).normalize() * screen_width / WIDTH as f32;
         let v_step = Vector { x: 0.0, y: 0.0, z: -screen_height / HEIGHT as f32 };
         // println!("Steps: h{}, v{}", h_step, v_step);
 
         // Initialize with a corner
-        let point = self.position + (self.direction.normalized() * self.distance) - (h_step * (WIDTH / 2) as f32 + v_step * (HEIGHT / 2) as f32);
+        let point = self.position + (self.direction.normalize() * self.distance) - (h_step * (WIDTH / 2) as f32 + v_step * (HEIGHT / 2) as f32);
         // println!("Corner: {}", point);
 
         let mut ray_dir = point - self.position;
@@ -112,14 +123,14 @@ impl Camera {
         let dz = Vector { x: 0.0, y: 0.0, z: d };
         let dfdz = (self.sdf(point + dz) - self.sdf(point - dz)) / (2.0 * d);
 
-        Vector { x: dfdx, y: dfdy, z: dfdz }.normalized()
+        Vector { x: dfdx, y: dfdy, z: dfdz }.normalize()
     }
 
     pub fn shoot_ray(&self, direction: Vector) -> f32 {
-        let light = Vector { x: 1.0, y: 1.0, z: -1.0 }.normalized();
+        let light = Vector { x: 1.0, y: 1.0, z: -1.0 }.normalize();
         let threshold = 0.1;
 
-        let ray = direction.normalized();
+        let ray = direction.normalize();
         let mut point = self.position;
         let mut dist = 0.0;
         let mut count = 0;
@@ -130,7 +141,7 @@ impl Camera {
             if dist < threshold {
                 // Collision in point! Let's calculate lights now:
                 let normal = self.normal(point);
-                let dot = -(normal * light);
+                let dot = -(normal.dot(light));
                 return 1.0 - dot.max(0.01).min(0.98);
             }
             point = point + ray * dist;
