@@ -12,16 +12,16 @@ pub fn rotate_z(vec: Vector, angle: f32) -> Vector {
     }
 }
 
-const WIDTH: i32 = 120;
+const WIDTH: i32 = 180;
 const HEIGHT: i32 = 60;
 
 #[derive(Debug)]
-pub struct Buffer (pub [[char; 120]; 60]);
+pub struct Buffer (pub [[char; 180]; 60]);
 
 impl fmt::Display for Buffer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for i in 0..60 {
-            for j in 0..120 {
+            for j in 0..180 {
                 write!(f, "{}", self.0[i][j])?;
             }
             writeln!(f)?;
@@ -80,7 +80,8 @@ impl Camera {
     }
 
     pub fn rorate_around_point(& mut self, point: Vector) {
-        self.position = rotate_z(self.position - point, 2.0 * PI / 60.0) + point;
+        let rotations_per_round = 2.0;
+        self.position = rotate_z(self.position - point, rotations_per_round * 2.0 * PI / 60.0) + point;
         self.direction = (point - self.position).normalize();
     }
 
