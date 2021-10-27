@@ -54,17 +54,17 @@ impl Camera {
         let floor_dist = point.z + 1.0;
 
         // Sphere
-        let center = Vector { x: 3.0, y: 0.0, z: 0.0 };
+        let center = Vector { x: 4.0, y: 0.0, z: 0.0 };
         let radius = 1.0 + 0.5 * self.time.sin();
         let sphere_dist = (point - center).magnitude() - radius;
 
         // Small sphere
-        let center2 = Vector { x: 2.5, y: 0.5, z: 0.0 };
+        let center2 = Vector { x: 3.5, y: 0.5, z: 0.0 };
         let radius2 = 0.7;
         let sphere2_dist = (point - center2).magnitude() - radius2;
 
         // Second sphere
-        let center3 = Vector { x: 3.0 + self.time.sin() * 1.6, y: -2.5, z: 0.0 - self.time.sin() * 0.8 };
+        let center3 = Vector { x: 4.0 + self.time.sin() * 1.6, y: -2.5, z: 0.0 - self.time.sin() * 0.8 };
         let radius3 = 1.0;
         let sphere3_dist = (point - center3).magnitude() - radius3;
 
@@ -79,6 +79,11 @@ impl Camera {
         )
     }
 
+    pub fn rorate_around_point(& mut self, point: Vector) {
+        self.position = rotate_z(self.position - point, 2.0 * PI / 60.0) + point;
+        self.direction = (point - self.position).normalize();
+    }
+
     pub fn screen(&self) -> (f32, f32) {
         let width = self.distance * 2.0 * (self.angle / 2.0).tan();
         let height = width * self.aspect_ratio;
@@ -86,6 +91,8 @@ impl Camera {
         (width, height)
     }
     pub fn render(& mut self) {
+        self.rorate_around_point(Vector { x: 4.0, y: 0.0, z: 0.0 });
+
         let palette = "$@B%8&WM#oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'.";
         let (screen_width, screen_height) = self.screen();
 

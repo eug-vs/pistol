@@ -17,7 +17,7 @@ fn main() {
         time: 0.0,
     };
 
-    for _round in 0..1 {
+    for _round in 0..20 {
         for i in 0..60 {
             // 1 sin round
             cam.time = (i as f32 / 60.0) * 2.0 * PI;
