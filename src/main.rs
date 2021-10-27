@@ -34,7 +34,7 @@ fn main() {
         let timestamp = Instant::now();
         cam.render();
         addstr(&cam.buffer.to_string());
-        addstr(&format!("\nRendered in {:?}\n", timestamp.elapsed()).to_string());
+        addstr(&format!("\nRendered in {:?} ({:.0} FPS)\n", timestamp.elapsed(), 1.0 / timestamp.elapsed().as_secs_f64()));
         addstr(&format!("Camera: {:?}\n", cam.position));
         addstr(&format!("Facing: {:?}\n", cam.direction));
         addstr(&format!("Light: {:?}\n", cam.light));
