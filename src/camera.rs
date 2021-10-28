@@ -1,4 +1,5 @@
 use cgmath::Matrix3;
+use cgmath::Rad;
 use cgmath::Vector3;
 use cgmath::prelude::*;
 use std::fmt;
@@ -45,11 +46,11 @@ fn softmin(left: f32, right: f32, k: f32) -> f32 {
     return left.min(right) - h*h*k*(1.0/4.0);
 }
 
-fn sphere(point: Vector, center: Vector, radius: f32) -> f32 {
+fn sd_sphere(point: Vector, center: Vector, radius: f32) -> f32 {
     (point - center).magnitude() - radius
 }
 
-fn r#box(point: Vector, center: Vector, size: Vector) -> f32 {
+fn sd_box(point: Vector, center: Vector, size: Vector) -> f32 {
     let diff = center - point;
     let q = diff.map(|n| n.abs()) - size / 2.0;
     return q.map(|n| n.max(0.0)).magnitude() + (q.y.max(q.z).max(q.x)).min(0.0)
@@ -57,35 +58,38 @@ fn r#box(point: Vector, center: Vector, size: Vector) -> f32 {
 
 
 impl Camera {
-    pub fn sdf(&self, point: Vector) -> f32 {
+    pub fn sd_gear(&self, point: Vector, center: Vector, radius: f32, thickness: f32) -> f32 {
         let mut dist: f32;
-         // Floor at z = -2
-        let floor_dist = point.z + 1.0;
 
-        dist = floor_dist;
-
-        // Sphere
+        // Ring
         {
-            let center = Vector { x: 4.0, y: 0.0, z: 0.0 };
-            let radius = 1.5;
-            dist = softmin(dist, sphere(point, center, radius), 1.2);
+            let cylinder_dist = (Vector::new(0.0, point.y, point.z) - center).magnitude() - (radius - thickness / 4.0);
+            dist = cylinder_dist.abs() - thickness / 2.0; // Make cylinder hollow
         }
 
-        // Hole
+        // Teeth
         {
-            let center = Vector { x: 4.0, y: 0.0, z: 0.0 };
-            let size = Vector::new(5.0, 2.0, 2.0);
-            dist = dist.max(-r#box(point, center, size));
+            let center = Vector { x: 0.0, y: radius + thickness / 2.0, z: 0.0 };
+            let size = Vector::new(thickness, thickness * 2.0, thickness);
+
+            let sector_angle = Rad::full_turn() / 12.0;
+            let point_angle = (point.z / point.y).atan();
+            let sector = (point_angle / sector_angle.0).round();
+            let mut mapped_point = Matrix3::from_angle_x(-sector_angle * sector) * point;
+            mapped_point.y = mapped_point.y.abs();
+
+
+            // Make teeth smooth by subtracting some amount
+            dist = dist.min(sd_box(mapped_point, center, size) - thickness / 4.0);
         }
 
-        // Windows
-        {
-            let center = Vector { x: 4.0, y: 0.0, z: 0.0 };
-            let size = Vector::new(1.0, 5.0, 1.0);
-            dist = dist.max(-(r#box(point, center, size)));
-        }
+        // Tak a slice
+        dist = dist.max(point.x.abs() - thickness / 2.0);
 
-        return dist
+        return dist;
+    }
+    pub fn sdf(&self, point: Vector) -> f32 {
+        self.sd_gear(point, Vector::zero(), 3.0, 0.6)
     }
 
     pub fn screen(&self) -> (f32, f32) {
@@ -157,7 +161,7 @@ impl Camera {
         while dist < 10.0 && count < 30 {
             count += 1;
             dist = self.sdf(point);
-            if dist < threshold {
+            if dist.abs() < threshold {
                 return Some(point);
             }
             point += ray * dist;
@@ -174,7 +178,7 @@ impl Camera {
     pub fn diffuse_lighting(&self, point: Vector) -> f32 {
         let mut res: f32 = 1.0;
         let mut ph = 1e20;
-        let mut t = 0.1;
+        let mut t = 0.001;
         let k = 4.0;
 
         while t < 7.0 {

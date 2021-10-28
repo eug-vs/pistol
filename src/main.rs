@@ -10,7 +10,7 @@ use crate::camera::{Buffer, Camera, WIDTH, HEIGHT};
 
 fn main() {
     let mut cam = Camera {
-        position: Vector3::zero(),
+        position: Vector3::new(-5.0, 0.0, 2.0),
         direction: Vector3::unit_x(),
         up: Vector3::unit_z(),
         light: Vector3 { x: 1.0, y: 1.0, z: -1.0 }.normalize(),
