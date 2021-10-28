@@ -3,10 +3,10 @@ extern crate ncurses;
 mod camera;
 mod canvas;
 use std::{f32::consts::PI, time::Instant};
-use cgmath::{Angle, InnerSpace, Matrix3, Rad, Vector3, Zero};
+use cgmath::{Angle, InnerSpace, Matrix3, Rad, Vector3};
 use ncurses::*;
 
-use crate::camera::{Buffer, Camera, WIDTH, HEIGHT};
+use crate::camera::{Camera, WIDTH, HEIGHT};
 
 fn main() {
     let mut cam = Camera {
@@ -18,10 +18,12 @@ fn main() {
         distance: 1.0,
         aspect_ratio: 2.0 * HEIGHT as f32 / WIDTH as f32,
         brightness: 5.0,
-        buffer: Buffer([[' '; WIDTH as usize]; HEIGHT as usize]),
         time: 0.0,
         speed: 0.5,
         turn_rate: 30.0,
+        width: 2.0,
+        height: 4.0 * HEIGHT as f32 / WIDTH as f32,
+        palette: "$@B%8&WM#oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ".chars().collect(),
     };
 
     initscr();
@@ -34,7 +36,6 @@ fn main() {
         cam.time += 1.0;
         let timestamp = Instant::now();
         cam.render();
-        addstr(&cam.buffer.to_string());
         addstr(&format!("\nRendered in {:?} ({:.0} FPS)\n", timestamp.elapsed(), 1.0 / timestamp.elapsed().as_secs_f64()));
         addstr(&format!("\nTime: {:?}\n", cam.time));
         addstr(&format!("Camera: {:?}\n", cam.position));
