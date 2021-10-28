@@ -58,7 +58,7 @@ fn sd_box(point: Vector, center: Vector, size: Vector) -> f32 {
 
 
 impl Camera {
-    pub fn sd_gear(&self, point: Vector, center: Vector, radius: f32, thickness: f32) -> f32 {
+    pub fn sd_gear(&self, point: Vector, center: Vector, radius: f32, thickness: f32, turn_rate: f32) -> f32 {
         let mut dist: f32;
 
         // Ring
@@ -69,27 +69,31 @@ impl Camera {
 
         // Teeth
         {
+            let sector_angle = Rad::full_turn() / 12.0;
+
             let center = Vector { x: 0.0, y: radius + thickness / 2.0, z: 0.0 };
             let size = Vector::new(thickness, thickness * 2.0, thickness);
 
-            let sector_angle = Rad::full_turn() / 12.0;
-            let point_angle = (point.z / point.y).atan();
-            let sector = (point_angle / sector_angle.0).round();
-            let mut mapped_point = Matrix3::from_angle_x(-sector_angle * sector) * point;
-            mapped_point.y = mapped_point.y.abs();
+            // Account for rotation with time
+            let rotated_point = Matrix3::from_angle_x(sector_angle * self.time / turn_rate) * point;
 
+            // Map all space to the first sector
+            let point_angle = (rotated_point.z / rotated_point.y).atan();
+            let sector = (point_angle / sector_angle.0).round();
+            let mut mapped_point = Matrix3::from_angle_x(-sector_angle * sector) * rotated_point;
+            mapped_point.y = mapped_point.y.abs();
 
             // Make teeth smooth by subtracting some amount
             dist = dist.min(sd_box(mapped_point, center, size) - thickness / 4.0);
         }
 
-        // Tak a slice
+        // Take a slice
         dist = dist.max(point.x.abs() - thickness / 2.0);
 
         return dist;
     }
     pub fn sdf(&self, point: Vector) -> f32 {
-        self.sd_gear(point, Vector::zero(), 3.0, 0.6)
+        self.sd_gear(point, Vector::zero(), 3.0, 0.6, 10.0)
     }
 
     pub fn screen(&self) -> (f32, f32) {

@@ -26,18 +26,17 @@ fn main() {
 
     initscr();
 
-    let time = 0;
-
     while true {
         clear();
         flushinp();
 
         // Render
-        cam.time = (time as f32 / 60.0) * 2.0 * PI;
+        cam.time += 1.0;
         let timestamp = Instant::now();
         cam.render();
         addstr(&cam.buffer.to_string());
         addstr(&format!("\nRendered in {:?} ({:.0} FPS)\n", timestamp.elapsed(), 1.0 / timestamp.elapsed().as_secs_f64()));
+        addstr(&format!("\nTime: {:?}\n", cam.time));
         addstr(&format!("Camera: {:?}\n", cam.position));
         addstr(&format!("Facing: {:?}, Up: {:?}\n", cam.direction, cam.up));
         addstr(&format!("Light: {:?}\n", cam.light));
