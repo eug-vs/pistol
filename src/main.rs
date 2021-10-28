@@ -17,7 +17,7 @@ fn main() {
         angle: PI / 2.0,
         distance: 1.0,
         aspect_ratio: 2.0 * HEIGHT as f32 / WIDTH as f32,
-        brightness: 5.0,
+        brightness: 15.0,
         time: 0.0,
         speed: 0.5,
         turn_rate: 30.0,

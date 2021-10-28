@@ -9,7 +9,7 @@ use std::time::Instant;
 
 type Vector = Vector3<f32>;
 
-pub const HEIGHT: i32 = 60;
+pub const HEIGHT: i32 = 50;
 pub const WIDTH: i32 = HEIGHT * 3;
 
 #[derive(Debug)]
@@ -154,7 +154,7 @@ impl Camera {
         let mut dist = 0.0;
         let mut count = 0;
 
-        while dist < 8.0 && count < 10 {
+        while dist < self.brightness && count < 10 {
             count += 1;
             dist = self.sdf(point);
             if dist.abs() < threshold {
