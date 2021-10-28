@@ -167,11 +167,11 @@ impl Camera {
     }
 
     pub fn light_point(&self, point: Vector) -> f32 {
-        let base_light = 0.01;
-        return base_light + (1.0 - base_light) * (self.apply_shadow(point) * 0.7 + self.apply_ambient(point) * 0.3)
+        let ambient = 0.1;
+        return ambient + (1.0 - ambient) * (self.diffuse_lighting(point) * 0.7 + self.specular_lighting(point) * 0.3)
     }
 
-    pub fn apply_shadow(&self, point: Vector) -> f32 {
+    pub fn diffuse_lighting(&self, point: Vector) -> f32 {
         let mut res: f32 = 1.0;
         let mut ph = 1e20;
         let mut t = 0.1;
@@ -192,7 +192,7 @@ impl Camera {
         return res
     }
 
-    pub fn apply_ambient(&self, point: Vector) -> f32 {
+    pub fn specular_lighting(&self, point: Vector) -> f32 {
         let normal = self.normal(point);
         let dot = -(normal.dot(self.light));
         return dot.min(1.0).max(0.0)
