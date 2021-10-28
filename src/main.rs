@@ -1,7 +1,6 @@
 extern crate ncurses;
 
 mod camera;
-mod canvas;
 use std::{f32::consts::PI, time::Instant};
 use cgmath::{Angle, InnerSpace, Matrix3, Rad, Vector3};
 use ncurses::*;
