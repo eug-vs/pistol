@@ -12,14 +12,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ascii-renderer-rust"
-version = "0.1.0"
-dependencies = [
- "cgmath",
- "ncurses",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -65,6 +57,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a64b1ec5cda2586e284722486d802acf1f7dbdc623e2bfc57e65ca1cd099290"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "pistol"
+version = "0.1.0"
+dependencies = [
+ "cgmath",
+ "ncurses",
 ]
 
 [[package]]

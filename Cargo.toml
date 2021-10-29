@@ -1,5 +1,5 @@
 [package]
-name = "ascii-renderer-rust"
+name = "pistol"
 version = "0.1.0"
 edition = "2018"
 
