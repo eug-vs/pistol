@@ -5,17 +5,40 @@ use std::f32;
 
 use crate::Buffer;
 use crate::Camera;
+use crate::Object;
 
 type Vector = Vector3<f32>;
 
-pub struct Renderer {
-    pub camera: Camera,
-    pub buffer: Buffer,
+pub struct Renderer<'a> {
+    pub camera: Box<Camera>,
+    pub buffer: Box<Buffer>,
+    pub sdf: Box<dyn Fn(Vector, f32) -> f32 + 'a>,
 }
 
-impl Renderer {
-    pub fn render(&self, sdf: &dyn Fn(Vector) -> f32) {
+impl Renderer<'_> {
+    // TODO: figure out how the fuck it actually works
+    pub fn new(buffer: Box<Buffer>, camera: Box<Camera>, objects: Vec<Box<dyn Object>>) -> Self {
+        let sdf = move |point: Vector3<f32>, time: f32| -> f32 {
+            let mut dist: f32 = 100000.0;
+            for object in objects.iter() {
+                dist = dist.min(object.sdf(point, time));
+            }
+            dist
+        };
+
+        Self {
+            buffer,
+            camera,
+            sdf: Box::new(sdf)
+        }
+    }
+
+    pub fn render(&self, time: f32) {
         let (mut ray_dir, mut step_h, mut step_v) = self.camera.get_screen_iterator();
+
+        let sdf = |point: Vector3<f32>| -> f32 {
+            (self.sdf)(point, time)
+        };
 
         step_v /= self.buffer.height;
         step_h /= self.buffer.width;
@@ -26,10 +49,10 @@ impl Renderer {
             for _j in 0..self.buffer.width as usize {
                 ray_dir += step_h;
 
-                let collision = Self::ray_march(self.camera.position, ray_dir, sdf);
+                let collision = Self::ray_march(self.camera.position, ray_dir, &sdf);
 
                 let brightness = match collision {
-                    Some(point) => Self::light_point(point, sdf),
+                    Some(point) => Self::light_point(point, &sdf),
                     None => 0.0
                 };
 

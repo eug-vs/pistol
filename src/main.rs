@@ -6,31 +6,42 @@ mod renderer;
 mod sdf;
 
 use std::{f32::consts::PI, time::Instant};
-use cgmath::{Angle, Matrix3, Rad, Vector3, Zero};
+use cgmath::{Angle, Array, Matrix3, Rad, Vector3, Zero};
 use ncurses::*;
 
 use camera::Camera;
 use buffer::Buffer;
 use renderer::Renderer;
-use sdf::sd_gear;
-
+use sdf::{Sphere, Gear, Object, SDBox};
 
 fn main() {
-    let mut renderer = Renderer {
-        buffer:Buffer::from_height(50.0, 3.0),
-        camera: Camera::new(
+    // This vector will later be built
+    // by parsing a JSON scene
+    let mut renderer = Renderer::new(
+        Box::new(Buffer::from_height(50.0, 3.0)),
+        Box::new(Camera::new(
             Vector3::new(-4.0, 0.0, 0.0),
             Vector3::zero(),
             PI / 2.0,
             1.0
-        )
-    };
-
-    // This closure will later be built
-    // by parsing a JSON scene
-    let sdf_global = |point: Vector3<f32>, time: f32| -> f32 {
-        sd_gear(point, time, Vector3::zero(), 2.0, 0.4, 30.0)
-    };
+        )),
+        vec![
+            Box::new(Sphere {
+                center: Vector3::zero(),
+                radius: 0.4,
+            }),
+            Box::new(Gear {
+                center: Vector3::zero(),
+                radius: 2.0,
+                thickness: 0.4,
+                turn_rate: 30.0,
+            }),
+            Box::new(SDBox {
+                center: Vector3::new(2.0, 2.0, 0.0),
+                size: Vector3::from_value(1.0),
+            }),
+        ]
+    );
 
     initscr();
 
@@ -42,13 +53,9 @@ fn main() {
 
         time += 1.0;
 
-        let sdf = |point: Vector3<f32>| -> f32 {
-            sdf_global(point, time)
-        };
-
         // Render
         let timestamp = Instant::now();
-        renderer.render(&sdf);
+        renderer.render(time);
         addstr(&format!("\nRendered in {:?} ({:.1} FPS)\n", timestamp.elapsed(), 1.0 / timestamp.elapsed().as_secs_f64()));
         addstr(&format!("Camera: {:?}\n", renderer.camera.position));
         addstr(&format!("Facing: {:?}, Up: {:?}\n", renderer.camera.direction, renderer.camera.up));
