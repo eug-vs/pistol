@@ -8,3 +8,4 @@ edition = "2018"
 [dependencies]
 cgmath = "0.18.0"
 ncurses = "5.101.0"
+rayon = "1.10.0"

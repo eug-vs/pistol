@@ -1,12 +1,14 @@
-use cgmath::{Vector3, Matrix3};
 use cgmath::prelude::*;
+use cgmath::{Matrix3, Vector3};
+
+use crate::screen::ScreenIterator;
 type Vector = Vector3<f32>;
 
 // The physical screen that camera projects onto
 #[derive(Debug, Copy, Clone)]
 pub struct Screen {
     pub width: f32,
-    pub height: f32
+    pub height: f32,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -34,10 +36,10 @@ impl Camera {
             distance,
             screen: Screen { width, height },
             speed: 0.5,
-            turn_rate: 60.0
+            turn_rate: 60.0,
         }
     }
-    pub fn get_screen_iterator(self) -> (Vector, Vector, Vector) {
+    pub fn get_screen_iterator(self) -> ScreenIterator {
         // Linear transormation operator for calculating screen position
         // Assumes "initial" screen is perpendicular to OX
         // and it's bottom edge is parallel to OY
@@ -47,12 +49,10 @@ impl Camera {
             -self.up * self.screen.height,
         );
 
-        let corner_dir = operator * Vector::new(1.0, -0.5, -0.5); // Corner
-        let step_v = operator * Vector::unit_z();
-        let step_h = operator * Vector::unit_y();
-
-        // TODO: return an actual iterator
-        return (corner_dir, step_h, step_v)
+        ScreenIterator::from_screen_position(
+            operator * Vector::new(1.0, -0.5, -0.5),
+            operator * Vector::unit_z(),
+            operator * Vector::unit_y(),
+        )
     }
 }
-

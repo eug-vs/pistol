@@ -10,7 +10,9 @@ impl Buffer {
         Self {
             height,
             width: height * aspect_ratio,
-            palette: "$@B%8&WM#oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ".chars().collect(),
+            palette: "$@B%8&WM#oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
+                .chars()
+                .collect(),
         }
     }
 }
