@@ -43,7 +43,7 @@ fn main() {
 
     let mut time = 0.0;
 
-    while true {
+    loop {
         clear();
         flushinp();
 
@@ -124,6 +124,4 @@ fn main() {
             renderer.camera.direction = -renderer.camera.direction;
         }
     }
-
-    endwin();
 }
