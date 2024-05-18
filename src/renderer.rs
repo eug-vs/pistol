@@ -73,14 +73,14 @@ impl Renderer {
         direction: Vector,
         sdf: &dyn Fn(Vector) -> f32,
     ) -> Option<Vector> {
-        let threshold = 0.1;
+        let threshold = 0.01;
 
         let ray = direction.normalize();
         let mut point = origin;
         let mut dist = 0.0;
         let mut count = 0;
 
-        while dist < 8.0 && count < 10 {
+        while dist < 8.0 && count < 30 {
             count += 1;
             dist = sdf(point);
             if dist.abs() < threshold {
