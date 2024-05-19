@@ -35,8 +35,8 @@ impl Camera {
             up: Vector::unit_z(),
             distance,
             screen: Screen { width, height },
-            speed: 0.5,
-            turn_rate: 60.0,
+            speed: 0.15,
+            turn_rate: 90.0,
         }
     }
     pub fn get_screen_iterator(self) -> ScreenIterator {

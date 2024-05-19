@@ -86,25 +86,25 @@ fn main() {
         } else if char == 106 {
             // j to move backward
             renderer.camera.position -= renderer.camera.direction * renderer.camera.speed;
-        } else if char == 72 {
-            // H to move left
+        } else if char == 104 {
+            // h to move left
             renderer.camera.position +=
                 Matrix3::from_axis_angle(renderer.camera.up, Rad::turn_div_4())
                     * renderer.camera.direction
                     * renderer.camera.speed;
-        } else if char == 76 {
-            // L to move right
+        } else if char == 108 {
+            // l to move right
             renderer.camera.position -=
                 Matrix3::from_axis_angle(renderer.camera.up, Rad::turn_div_4())
                     * renderer.camera.direction
                     * renderer.camera.speed;
-        } else if char == 104 {
-            // h to rotate left
+        } else if char == 72 {
+            // H to rotate left
             let rotation = Matrix3::from_angle_z(Rad::full_turn() / renderer.camera.turn_rate);
             renderer.camera.direction = rotation * renderer.camera.direction;
             renderer.camera.up = rotation * renderer.camera.up;
-        } else if char == 108 {
-            // l to rotate right
+        } else if char == 76 {
+            // L to rotate right
             let rotation = Matrix3::from_angle_z(-Rad::full_turn() / renderer.camera.turn_rate);
             renderer.camera.direction = rotation * renderer.camera.direction;
             renderer.camera.up = rotation * renderer.camera.up;

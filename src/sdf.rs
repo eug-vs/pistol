@@ -14,8 +14,8 @@ pub struct Sphere {
 }
 
 impl Object for Sphere {
-    fn sdf(&self, point: Vector, time: f32) -> f32 {
-        (point - self.center).magnitude() - self.radius + (time % 5.0) / 50.0
+    fn sdf(&self, point: Vector, _time: f32) -> f32 {
+        (point - self.center).magnitude() - self.radius
     }
 }
 
