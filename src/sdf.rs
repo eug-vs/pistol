@@ -14,8 +14,8 @@ pub struct Sphere {
 }
 
 impl Object for Sphere {
-    fn sdf(&self, point: Vector, _time: f32) -> f32 {
-        (point - self.center).magnitude() - self.radius
+    fn sdf(&self, point: Vector, time: f32) -> f32 {
+        (point - self.center).magnitude() - self.radius + (time % 5.0) / 50.0
     }
 }
 
@@ -41,6 +41,7 @@ pub struct Gear {
 
 impl Object for Gear {
     fn sdf(&self, point: Vector, time: f32) -> f32 {
+        let point = point - self.center;
         let mut dist: f32;
 
         let thickness_over_2 = self.thickness / 2.0;
@@ -48,8 +49,8 @@ impl Object for Gear {
 
         // Ring
         {
-            let cylinder_dist = (Vector::new(0.0, point.y, point.z) - self.center).magnitude()
-                - (self.radius - thickness_over_4);
+            let cylinder_dist =
+                (Vector::new(0.0, point.y, point.z)).magnitude() - (self.radius - thickness_over_4);
             dist = cylinder_dist.abs() - thickness_over_2; // Make cylinder hollow
         }
         // Teeth

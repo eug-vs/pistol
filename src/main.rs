@@ -15,22 +15,30 @@ use camera::Camera;
 use renderer::Renderer;
 use sdf::{Gear, Object, SDBox, Sphere};
 
+const FPS: i32 = 60;
+
 fn main() {
     // This vector will later be built
     // by parsing a JSON scene
     let mut renderer = Renderer::new(
-        Buffer::from_height(50.0, 3.0),
+        Buffer::from_height(100.0, 3.0),
         Camera::new(Vector3::new(-4.0, 0.0, 0.0), Vector3::zero(), PI / 2.0, 1.0),
         vec![
             Box::new(Sphere {
                 center: Vector3::zero(),
-                radius: 0.4,
+                radius: 1.1,
             }),
             Box::new(Gear {
                 center: Vector3::zero(),
                 radius: 2.0,
                 thickness: 0.4,
                 turn_rate: 30.0,
+            }),
+            Box::new(Gear {
+                center: Vector3::unit_y() * 4.90 - Vector3::unit_z() * 0.65,
+                radius: 2.0,
+                thickness: 0.4,
+                turn_rate: -30.0,
             }),
             Box::new(SDBox {
                 center: Vector3::new(2.0, 2.0, 0.0),
@@ -40,6 +48,7 @@ fn main() {
     );
 
     initscr();
+    timeout(1000 / FPS);
 
     let mut time = 0.0;
 

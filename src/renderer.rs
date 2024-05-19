@@ -80,7 +80,7 @@ impl Renderer {
         let mut dist = 0.0;
         let mut count = 0;
 
-        while dist < 8.0 && count < 30 {
+        while dist < 15.0 && count < 50 {
             count += 1;
             dist = sdf(point);
             if dist.abs() < threshold {
